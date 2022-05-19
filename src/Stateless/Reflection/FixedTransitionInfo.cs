@@ -8,23 +8,16 @@ namespace Stateless.Reflection;
 /// </summary>
 public class FixedTransitionInfo : TransitionInfo
 {
-    internal static FixedTransitionInfo Create<TState, TTrigger>(StateMachine<TState, TTrigger>.TriggerBehaviour behaviour, StateInfo destinationStateInfo)
+    internal static FixedTransitionInfo Create<TState, TTrigger>(StateMachine<TState, TTrigger>.TriggerBehaviour behaviour, StateInfo destinationStateInfo)  where TState : notnull where TTrigger : notnull
     {
-        var transition = new FixedTransitionInfo
-        {
-            Trigger          = new TriggerInfo(behaviour.Trigger),
-            DestinationState = destinationStateInfo,
-            GuardConditionsMethodDescriptions = (behaviour.Guard == null)
-                                                    ? new List<InvocationInfo>() : behaviour.Guard.Conditions.Select(c => c.MethodDescription)
-        };
-
-        return transition;
+        return new FixedTransitionInfo(behaviour.Guard.Conditions.Select(c => c.MethodDescription), new TriggerInfo(behaviour.Trigger), destinationStateInfo);
     }
 
-    private FixedTransitionInfo() { }
+    /// <inheritdoc />
+    private FixedTransitionInfo(IEnumerable<InvocationInfo> guardConditionsMethodDescriptions, TriggerInfo trigger, StateInfo destinationState) : base(guardConditionsMethodDescriptions, trigger) => DestinationState = destinationState;
 
     /// <summary>
     /// The state that will be transitioned into on activation.
     /// </summary>
-    public StateInfo DestinationState { get; private set; }
+    public StateInfo DestinationState { get; }
 }

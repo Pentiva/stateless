@@ -46,7 +46,7 @@ public abstract class GraphStyleBase
     /// <param name="nodeName">Name of the node</param>
     /// <param name="label">Label for the node</param>
     /// <returns></returns>
-    public abstract string FormatOneDecisionNode(string nodeName, string label);
+    public abstract string FormatOneDecisionNode(string? nodeName, string label);
 
     /// <summary>
     /// Returns the formatted text for all the transitions found in the state graph.
@@ -55,7 +55,7 @@ public abstract class GraphStyleBase
     /// </summary>
     /// <param name="transitions">List of all transitions in the state graph</param>
     /// <returns>Description of all transitions, in the desired format</returns>
-    public virtual List<string> FormatAllTransitions(List<Transition> transitions)
+    public virtual List<string> FormatAllTransitions(List<Transition>? transitions)
     {
         var lines = new List<string>();
         if (transitions == null) return lines;
@@ -67,19 +67,19 @@ public abstract class GraphStyleBase
             {
                 if (!stay.ExecuteEntryExitActions)
                 {
-                    line = FormatOneTransition(stay.SourceState.NodeName, stay.Trigger.UnderlyingTrigger.ToString(),
+                    line = FormatOneTransition(stay.SourceState.NodeName, stay.Trigger.UnderlyingTrigger?.ToString(),
                                                null, stay.SourceState.NodeName, stay.Guards.Select(x => x.Description));
                 }
                 else if (stay.SourceState.EntryActions.Count == 0)
                 {
-                    line = FormatOneTransition(stay.SourceState.NodeName, stay.Trigger.UnderlyingTrigger.ToString(),
+                    line = FormatOneTransition(stay.SourceState.NodeName, stay.Trigger.UnderlyingTrigger?.ToString(),
                                                null, stay.SourceState.NodeName, stay.Guards.Select(x => x.Description));
                 }
                 else
                 {
                     // There are entry functions into the state, so call out that this transition
                     // does invoke them (since normally a transition back into the same state doesn't)
-                    line = FormatOneTransition(stay.SourceState.NodeName, stay.Trigger.UnderlyingTrigger.ToString(),
+                    line = FormatOneTransition(stay.SourceState.NodeName, stay.Trigger.UnderlyingTrigger?.ToString(),
                                                stay.SourceState.EntryActions, stay.SourceState.NodeName, stay.Guards.Select(x => x.Description));
                 }
             }
@@ -87,7 +87,7 @@ public abstract class GraphStyleBase
             {
                 if (transit is FixedTransition fix)
                 {
-                    line = FormatOneTransition(fix.SourceState.NodeName, fix.Trigger.UnderlyingTrigger.ToString(),
+                    line = FormatOneTransition(fix.SourceState.NodeName, fix.Trigger.UnderlyingTrigger?.ToString(),
                                                fix.DestinationEntryActions.Select(x => x.Method.Description),
                                                fix.DestinationState.NodeName, fix.Guards.Select(x => x.Description));
                 }
@@ -95,7 +95,7 @@ public abstract class GraphStyleBase
                 {
                     if (transit is DynamicTransition dyn)
                     {
-                        line = FormatOneTransition(dyn.SourceState.NodeName, dyn.Trigger.UnderlyingTrigger.ToString(),
+                        line = FormatOneTransition(dyn.SourceState.NodeName, dyn.Trigger.UnderlyingTrigger?.ToString(),
                                                    dyn.DestinationEntryActions.Select(x => x.Method.Description),
                                                    dyn.DestinationState.NodeName, new List<string> { dyn.Criterion });
                     }
@@ -103,8 +103,7 @@ public abstract class GraphStyleBase
                         throw new ArgumentException("Unexpected transition type");
                 }
             }
-            if (line is { })
-                lines.Add(line);
+            lines.Add(line);
         }
 
         return lines;
@@ -120,7 +119,7 @@ public abstract class GraphStyleBase
     /// <param name="destinationNodeName"></param>
     /// <param name="guards">List of guards (if any)</param>
     /// <returns></returns>
-    public virtual string FormatOneTransition(string sourceNodeName, string trigger, IEnumerable<string> actions, string destinationNodeName, IEnumerable<string> guards)
+    public virtual string FormatOneTransition(string? sourceNodeName, string? trigger, IEnumerable<string>? actions, string? destinationNodeName, IEnumerable<string> guards)
     {
         throw new InvalidOperationException("If you use IGraphStyle.FormatAllTransitions() you must implement an override of FormatOneTransition()");
     }

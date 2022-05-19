@@ -9,7 +9,7 @@ namespace Stateless.Reflection;
 /// </summary>
 public class StateInfo
 {
-    internal static StateInfo CreateStateInfo<TState, TTrigger>(StateMachine<TState, TTrigger>.StateRepresentation stateRepresentation)
+    internal static StateInfo CreateStateInfo<TState, TTrigger>(StateMachine<TState, TTrigger>.StateRepresentation stateRepresentation) where TState : notnull where TTrigger : notnull
     {
         if (stateRepresentation == null)
             throw new ArgumentNullException(nameof(stateRepresentation));
@@ -35,13 +35,13 @@ public class StateInfo
                              stateRepresentation.ExitActions.Select(e => e.Description).ToList());
     }
  
-    internal static void AddRelationships<TState, TTrigger>(StateInfo info, StateMachine<TState, TTrigger>.StateRepresentation stateRepresentation, Func<TState, StateInfo> lookupState)
+    internal static void AddRelationships<TState, TTrigger>(StateInfo info, StateMachine<TState, TTrigger>.StateRepresentation stateRepresentation, Func<TState, StateInfo> lookupState) where TState : notnull where TTrigger : notnull
     {
         if (lookupState == null) throw new ArgumentNullException(nameof(lookupState));
 
         var substates = stateRepresentation.GetSubstates().Select(s => lookupState(s.UnderlyingState)).ToList();
 
-        StateInfo superstate = null;
+        StateInfo? superstate = null;
         if (stateRepresentation.Superstate is { })
             superstate = lookupState(stateRepresentation.Superstate.UnderlyingState);
 
@@ -94,7 +94,7 @@ public class StateInfo
     }
 
     private void AddRelationships(
-        StateInfo                          superstate,
+        StateInfo?                         superstate,
         IEnumerable<StateInfo>             substates,
         IEnumerable<FixedTransitionInfo>   transitions,
         IEnumerable<DynamicTransitionInfo> dynamicTransitions)
@@ -110,15 +110,20 @@ public class StateInfo
     /// </summary>
     public object UnderlyingState { get; }
 
+    private IEnumerable<StateInfo>? _substates;
+
     /// <summary>
     /// Substates defined for this StateResource.
     /// </summary>
-    public IEnumerable<StateInfo> Substates { get; private set; }
+    public IEnumerable<StateInfo> Substates {
+        get => _substates ?? Enumerable.Empty<StateInfo>();
+        private set => _substates = value;
+    }
 
     /// <summary>
     /// Superstate defined, if any, for this StateResource.
     /// </summary>
-    public StateInfo Superstate { get; private set; }
+    public StateInfo? Superstate { get; private set; }
 
     /// <summary>
     /// Actions that are defined to be executed on state-entry.
@@ -145,15 +150,25 @@ public class StateInfo
     /// </summary>
     public IEnumerable<TransitionInfo> Transitions => FixedTransitions.Concat<TransitionInfo>(DynamicTransitions);
 
+    private IEnumerable<FixedTransitionInfo>? _fixedTransitions;
+
     /// <summary>
     /// Transitions defined for this state.
     /// </summary>
-    public IEnumerable<FixedTransitionInfo> FixedTransitions { get; private set; }
+    public IEnumerable<FixedTransitionInfo> FixedTransitions {
+        get => _fixedTransitions ?? Enumerable.Empty<FixedTransitionInfo>();
+        private set => _fixedTransitions = value;
+    }
+
+    private IEnumerable<DynamicTransitionInfo>? _dynamicTransitions;
 
     /// <summary>
     /// Dynamic Transitions defined for this state internally.
     /// </summary>
-    public IEnumerable<DynamicTransitionInfo> DynamicTransitions { get; private set; }
+    public IEnumerable<DynamicTransitionInfo> DynamicTransitions {
+        get => _dynamicTransitions ?? Enumerable.Empty<DynamicTransitionInfo>();
+        private set => _dynamicTransitions = value;
+    }
 
     /// <summary>
     /// Triggers ignored for this state.
@@ -165,6 +180,6 @@ public class StateInfo
     /// </summary>
     public override string ToString()
     {
-        return UnderlyingState?.ToString() ?? "<null>";
+        return UnderlyingState.ToString() ?? "<null>";
     }
 }

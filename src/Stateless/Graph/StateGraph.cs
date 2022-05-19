@@ -107,7 +107,7 @@ public class StateGraph
     {
         foreach (var stateInfo in machineInfo.States)
         {
-            var state = States[stateInfo.UnderlyingState.ToString()];
+            var state = States[stateInfo.ToString()];
             foreach (var entryAction in stateInfo.EntryActions)
             {
                 if (entryAction.FromTrigger is { })
@@ -117,7 +117,7 @@ public class StateGraph
                     foreach (var transit in state.Arriving)
                     {
                         if ((transit.ExecuteEntryExitActions)
-                         && (transit.Trigger.UnderlyingTrigger.ToString() == entryAction.FromTrigger))
+                         && (transit.Trigger.UnderlyingTrigger?.ToString() == entryAction.FromTrigger))
                         {
                             transit.DestinationEntryActions.Add(entryAction);
                         }
@@ -136,10 +136,10 @@ public class StateGraph
     {
         foreach (var stateInfo in machineInfo.States)
         {
-            var fromState = States[stateInfo.UnderlyingState.ToString()];
+            var fromState = States[stateInfo.ToString()];
             foreach (var fix in stateInfo.FixedTransitions)
             {
-                var toState = States[fix.DestinationState.UnderlyingState.ToString()];
+                var toState = States[fix.DestinationState.ToString()];
                 if (fromState == toState)
                 {
                     var stay = new StayTransition(fromState, fix.Trigger, fix.GuardConditionsMethodDescriptions, true);
@@ -198,8 +198,8 @@ public class StateGraph
     {
         foreach (var stateInfo in machineInfo.States)
         {
-            if (!States.ContainsKey(stateInfo.UnderlyingState.ToString()))
-                States[stateInfo.UnderlyingState.ToString()] = new State(stateInfo);
+            if (!States.ContainsKey(stateInfo.ToString()))
+                States[stateInfo.ToString()] = new State(stateInfo);
         }
     }
 
@@ -209,10 +209,10 @@ public class StateGraph
     /// <param name="machineInfo"></param>
     private void AddSuperstates(StateMachineInfo machineInfo)
     {
-        foreach (var stateInfo in machineInfo.States.Where(sc => (sc.Substates?.Count() > 0) && (sc.Superstate == null)))
+        foreach (var stateInfo in machineInfo.States.Where(sc => (sc.Substates.Any()) && (sc.Superstate == null)))
         {
             var state = new SuperState(stateInfo);
-            States[stateInfo.UnderlyingState.ToString()] = state;
+            States[stateInfo.ToString()] = state;
             AddSubstates(state, stateInfo.Substates);
         }
     }
@@ -221,14 +221,14 @@ public class StateGraph
     {
         foreach (var subState in substates)
         {
-            if (States.ContainsKey(subState.UnderlyingState.ToString()))
+            if (States.ContainsKey(subState.ToString()))
             {
                 // This shouldn't happen
             }
             else if (subState.Substates.Any())
             {
                 var sub = new SuperState(subState);
-                States[subState.UnderlyingState.ToString()] = sub;
+                States[subState.ToString()] = sub;
                 superState.SubStates.Add(sub);
                 sub.SuperState = superState;
                 AddSubstates(sub, subState.Substates);
@@ -236,7 +236,7 @@ public class StateGraph
             else
             {
                 var sub = new State(subState);
-                States[subState.UnderlyingState.ToString()] = sub;
+                States[subState.ToString()] = sub;
                 superState.SubStates.Add(sub);
                 sub.SuperState = superState;
             }

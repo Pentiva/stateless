@@ -5,7 +5,7 @@
 /// </summary>
 public class TriggerInfo
 {
-    internal TriggerInfo(object underlyingTrigger)
+    internal TriggerInfo(object? underlyingTrigger)
     {
         UnderlyingTrigger = underlyingTrigger;
     }
@@ -13,7 +13,7 @@ public class TriggerInfo
     /// <summary>
     /// The instance or value this trigger represents.
     /// </summary>
-    public object UnderlyingTrigger { get; }
+    public object? UnderlyingTrigger { get; }
         
     /// <summary>
     /// Describes the trigger.
