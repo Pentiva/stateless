@@ -6,7 +6,7 @@ namespace Stateless;
 
 public partial class StateMachine<TState, TTrigger>
 {
-    internal class ExitActionBehavior
+    internal sealed class ExitActionBehavior
     {
         private readonly EventCallback<Transition> _callback = EventCallbackFactory.Create(new Action<Transition>(delegate { }));
 
@@ -24,12 +24,12 @@ public partial class StateMachine<TState, TTrigger>
             _callback = EventCallbackFactory.Create(action);
         }
 
-        protected ExitActionBehavior(InvocationInfo actionDescription)
+        private ExitActionBehavior(InvocationInfo actionDescription)
         {
             Description = actionDescription ?? throw new ArgumentNullException(nameof(actionDescription));
         }
 
-        public virtual Task ExecuteAsync(Transition transition)
+        public Task ExecuteAsync(Transition transition)
         {
             return _callback.InvokeAsync(transition);
         }
