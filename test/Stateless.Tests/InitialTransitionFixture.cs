@@ -8,7 +8,7 @@ namespace Stateless.Tests;
 public class InitialTransitionFixture
 {
     [Fact]
-    public void EntersSubState()
+    public async Task EntersSubState()
     {
         var sm = new StateMachine<State, Trigger>(State.A);
 
@@ -20,12 +20,12 @@ public class InitialTransitionFixture
         sm.Configure(State.C)
           .SubstateOf(State.B);
 
-        sm.Fire(Trigger.X);
+        await sm.FireAsync(Trigger.X);
         Assert.Equal(State.C, sm.State);
     }
 
     [Fact]
-    public void EntersSubStateofSubstate()
+    public async Task EntersSubStateofSubstate()
     {
         var sm = new StateMachine<State, Trigger>(State.A);
 
@@ -41,12 +41,12 @@ public class InitialTransitionFixture
         sm.Configure(State.D)
           .SubstateOf(State.C);
 
-        sm.Fire(Trigger.X);
+        await sm.FireAsync(Trigger.X);
         Assert.Equal(State.D, sm.State);
     }
 
     [Fact]
-    public void DoesNotEnterSubStateofSubstate()
+    public async Task DoesNotEnterSubStateofSubstate()
     {
         var sm = new StateMachine<State, Trigger>(State.A);
 
@@ -61,7 +61,7 @@ public class InitialTransitionFixture
         sm.Configure(State.D)
           .SubstateOf(State.C);
 
-        sm.Fire(Trigger.X);
+        await sm.FireAsync(Trigger.X);
         Assert.Equal(State.B, sm.State);
     }
 
@@ -135,7 +135,7 @@ public class InitialTransitionFixture
     }
 
     [Fact]
-    public void DoNotAllowTransitionToAnotherSuperstate()
+    public async Task DoNotAllowTransitionToAnotherSuperstate()
     {
         var sm = new StateMachine<State, Trigger>(State.A);
 
@@ -144,8 +144,7 @@ public class InitialTransitionFixture
         sm.Configure(State.B)
           .InitialTransition(State.A); // Invalid configuration, State a is a superstate
 
-        Assert.Throws(typeof(InvalidOperationException), () =>
-                          sm.Fire(Trigger.X));
+        await Assert.ThrowsAsync(typeof(InvalidOperationException), () => sm.FireAsync(Trigger.X));
     }
 
     [Fact]
@@ -178,7 +177,7 @@ public class InitialTransitionFixture
     }
 
     [Fact]
-    public void Transition_with_reentry_Test()
+    public async Task Transition_with_reentry_Test()
     {
         //   -------------------------
         //   | A                     |---\
@@ -210,7 +209,7 @@ public class InitialTransitionFixture
           .OnEntry(_ => onEntryStateBfired = ++order)
           .OnExit(_ => onExitStateBfired   = ++order);
 
-        sm.Fire(Trigger.X);
+        await sm.FireAsync(Trigger.X);
 
         Assert.Equal(State.B, sm.State);
         Assert.Equal(0, onExitStateBfired);
@@ -220,7 +219,7 @@ public class InitialTransitionFixture
     }
 
     [Fact]
-    public void VerifyNotEnterSuperstateWhenDoingInitialTransition()
+    public async Task VerifyNotEnterSuperstateWhenDoingInitialTransition()
     {
         var sm = new StateMachine<State, Trigger>(State.A);
 
@@ -229,20 +228,20 @@ public class InitialTransitionFixture
 
         sm.Configure(State.B)
           .InitialTransition(State.C)
-          .OnEntry(() => sm.Fire(Trigger.Y))
+          .OnEntryAsync(() => sm.FireAsync(Trigger.Y))
           .Permit(Trigger.Y, State.D);
 
         sm.Configure(State.C)
           .SubstateOf(State.B)
           .Permit(Trigger.Y, State.D);
 
-        sm.Fire(Trigger.X);
+        await sm.FireAsync(Trigger.X);
 
         Assert.Equal(State.D, sm.State);
     }
 
     [Fact]
-    public void SubStateOfSubstateOnEntryCountAndOrder()
+    public async Task SubStateOfSubstateOnEntryCountAndOrder()
     {
         var sm = new StateMachine<State, Trigger>(State.A);
         var onEntryCount = "";
@@ -264,13 +263,13 @@ public class InitialTransitionFixture
           .OnEntry(() => onEntryCount += "D")
           .SubstateOf(State.C);
 
-        sm.Fire(Trigger.X);
+        await sm.FireAsync(Trigger.X);
 
         Assert.Equal("BCD", onEntryCount);
     }
 
     [Fact]
-    public void TransitionEvents_OrderingWithInitialTransition()
+    public async Task TransitionEvents_OrderingWithInitialTransition()
     {
         var expectedOrdering = new List<string> { "OnExitA", "OnTransitionedAB", "OnEntryB", "OnTransitionedBC", "OnEntryC", "OnTransitionCompletedAC" };
         var actualOrdering = new List<string>();
@@ -292,7 +291,7 @@ public class InitialTransitionFixture
         sm.OnTransitioned(t => actualOrdering.Add($"OnTransitioned{t.Source}{t.Destination}"));
         sm.OnTransitionCompleted(t => actualOrdering.Add($"OnTransitionCompleted{t.Source}{t.Destination}"));
 
-        sm.Fire(Trigger.X);
+        await sm.FireAsync(Trigger.X);
         Assert.Equal(State.C, sm.State);
 
         Assert.Equal(expectedOrdering.Count, actualOrdering.Count);
