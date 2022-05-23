@@ -279,7 +279,7 @@ public class StateRepresentationFixture
             new Tuple<Func<object[], bool>, string>(_ => false, "2")
         };
 
-        var transitionGuard = new StateMachine<State, Trigger>.TransitionGuard(falseConditions);
+        var transitionGuard = new TransitionGuard(falseConditions);
         var transition = new StateMachine<State, Trigger>.TransitioningTriggerBehaviour(Trigger.X, State.C, transitionGuard);
         rep.AddTriggerBehaviour(transition);
 
@@ -296,7 +296,7 @@ public class StateRepresentationFixture
             new Tuple<Func<object[], bool>, string>(_ => true, "2")
         };
 
-        var transitionGuard = new StateMachine<State, Trigger>.TransitionGuard(trueConditions);
+        var transitionGuard = new TransitionGuard(trueConditions);
         var transition = new StateMachine<State, Trigger>.TransitioningTriggerBehaviour(Trigger.X, State.C, transitionGuard);
         rep.AddTriggerBehaviour(transition);
 
@@ -312,7 +312,7 @@ public class StateRepresentationFixture
             new Tuple<Func<object[], bool>, string>(_ => true, "1"),
             new Tuple<Func<object[], bool>, string>(_ => false, "2")
         };
-        var transitionGuard = new StateMachine<State, Trigger>.TransitionGuard(falseConditions);
+        var transitionGuard = new TransitionGuard(falseConditions);
         var transition = new StateMachine<State, Trigger>.TransitioningTriggerBehaviour(Trigger.X, State.C, transitionGuard);
         super.AddTriggerBehaviour(transition);
 
@@ -332,7 +332,7 @@ public class StateRepresentationFixture
             new Tuple<Func<object[], bool>, string>(_ => true, "1"),
             new Tuple<Func<object[], bool>, string>(_ => true, "2")
         };
-        var transitionGuard = new StateMachine<State, Trigger>.TransitionGuard(trueConditions);
+        var transitionGuard = new TransitionGuard(trueConditions);
         var transition = new StateMachine<State, Trigger>.TransitioningTriggerBehaviour(Trigger.X, State.C, transitionGuard);
 
         super.AddTriggerBehaviour(transition);
