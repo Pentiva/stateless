@@ -1,54 +1,55 @@
-﻿using Stateless.Reflection;
+﻿using System.Threading.Tasks;
+using Stateless.Reflection;
 
 namespace Stateless.Tests; 
 
 public class StateRepresentationFixture
 {
     [Fact]
-    public void UponEntering_EnteringActionsExecuted()
+    public async Task UponEntering_EnteringActionsExecuted()
     {
         var stateRepresentation = CreateRepresentation(State.B);
         StateMachine<State, Trigger>.Transition
             transition = new(State.A, State.B, Trigger.X),
             actualTransition = null;
         stateRepresentation.AddEntryAction((t, _) => actualTransition = t, InvocationInfo.Create(null, "entryActionDescription"));
-        stateRepresentation.Enter(transition);
+        await stateRepresentation.EnterAsync(transition);
         Assert.Equal(transition, actualTransition);
     }
 
     [Fact]
-    public void UponLeaving_EnteringActionsNotExecuted()
+    public async Task UponLeaving_EnteringActionsNotExecuted()
     {
         var stateRepresentation = CreateRepresentation(State.B);
         StateMachine<State, Trigger>.Transition
             transition = new(State.A, State.B, Trigger.X),
             actualTransition = null;
         stateRepresentation.AddEntryAction((t, _) => actualTransition = t, InvocationInfo.Create(null, "entryActionDescription"));
-        stateRepresentation.Exit(transition);
+        await stateRepresentation.ExitAsync(transition);
         Assert.Null(actualTransition);
     }
 
     [Fact]
-    public void UponLeaving_LeavingActionsExecuted()
+    public async Task UponLeaving_LeavingActionsExecuted()
     {
         var stateRepresentation = CreateRepresentation(State.A);
         StateMachine<State, Trigger>.Transition
             transition = new(State.A, State.B, Trigger.X),
             actualTransition = null;
         stateRepresentation.AddExitAction(t => actualTransition = t, InvocationInfo.Create(null, "entryActionDescription"));
-        stateRepresentation.Exit(transition);
+        await stateRepresentation.ExitAsync(transition);
         Assert.Equal(transition, actualTransition);
     }
 
     [Fact]
-    public void UponEntering_LeavingActionsNotExecuted()
+    public async Task UponEntering_LeavingActionsNotExecuted()
     {
         var stateRepresentation = CreateRepresentation(State.A);
         StateMachine<State, Trigger>.Transition
             transition = new(State.A, State.B, Trigger.X),
             actualTransition = null;
         stateRepresentation.AddExitAction(t => actualTransition = t, InvocationInfo.Create(null, "exitActionDescription"));
-        stateRepresentation.Enter(transition);
+        await stateRepresentation.EnterAsync(transition);
         Assert.Null(actualTransition);
     }
 
@@ -113,79 +114,79 @@ public class StateRepresentationFixture
     }
 
     [Fact]
-    public void WhenTransitioningFromSubToSuperstate_SubstateEntryActionsExecuted()
+    public async Task WhenTransitioningFromSubToSuperstate_SubstateEntryActionsExecuted()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
         var executed = false;
         sub.AddEntryAction((_, _) => executed = true, InvocationInfo.Create(null, "entryActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(super.UnderlyingState, sub.UnderlyingState, Trigger.X);
-        sub.Enter(transition);
+        await sub.EnterAsync(transition);
         Assert.True(executed);
     }
 
     [Fact]
-    public void WhenTransitioningFromSubToSuperstate_SubstateExitActionsExecuted()
+    public async Task WhenTransitioningFromSubToSuperstate_SubstateExitActionsExecuted()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
         var executed = false;
         sub.AddExitAction(_ => executed = true, InvocationInfo.Create(null, "exitActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(sub.UnderlyingState, super.UnderlyingState, Trigger.X);
-        sub.Exit(transition);
+        await sub.ExitAsync(transition);
         Assert.True(executed);
     }
 
     [Fact]
-    public void WhenTransitioningToSuperFromSubstate_SuperEntryActionsNotExecuted()
+    public async Task WhenTransitioningToSuperFromSubstate_SuperEntryActionsNotExecuted()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
         var executed = false;
         super.AddEntryAction((_, _) => executed = true, InvocationInfo.Create(null, "entryActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(super.UnderlyingState, sub.UnderlyingState, Trigger.X);
-        super.Enter(transition);
+        await super.EnterAsync(transition);
         Assert.False(executed);
     }
 
     [Fact]
-    public void WhenTransitioningFromSuperToSubstate_SuperExitActionsNotExecuted()
+    public async Task WhenTransitioningFromSuperToSubstate_SuperExitActionsNotExecuted()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
         var executed = false;
         super.AddExitAction(_ => executed = true, InvocationInfo.Create(null, "exitActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(super.UnderlyingState, sub.UnderlyingState, Trigger.X);
-        super.Exit(transition);
+        await super.ExitAsync(transition);
         Assert.False(executed);
     }
 
     [Fact]
-    public void WhenEnteringSubstate_SuperEntryActionsExecuted()
+    public async Task WhenEnteringSubstate_SuperEntryActionsExecuted()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
         var executed = false;
         super.AddEntryAction((_, _) => executed = true, InvocationInfo.Create(null, "entryActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(State.C, sub.UnderlyingState, Trigger.X);
-        sub.Enter(transition);
+        await sub.EnterAsync(transition);
         Assert.True(executed);
     }
 
     [Fact]
-    public void WhenLeavingSubstate_SuperExitActionsExecuted()
+    public async Task WhenLeavingSubstate_SuperExitActionsExecuted()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
         var executed = false;
         super.AddExitAction(_ => executed = true, InvocationInfo.Create(null, "exitActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(sub.UnderlyingState, State.C, Trigger.X);
-        sub.Exit(transition);
+        await sub.ExitAsync(transition);
         Assert.True(executed);
     }
 
     [Fact]
-    public void EntryActionsExecuteInOrder()
+    public async Task EntryActionsExecuteInOrder()
     {
         var actual = new List<int>();
 
@@ -193,7 +194,7 @@ public class StateRepresentationFixture
         rep.AddEntryAction((_, _) => actual.Add(0), InvocationInfo.Create(null, "entryActionDescription"));
         rep.AddEntryAction((_, _) => actual.Add(1), InvocationInfo.Create(null, "entryActionDescription"));
 
-        rep.Enter(new StateMachine<State, Trigger>.Transition(State.A, State.B, Trigger.X));
+        await rep.EnterAsync(new StateMachine<State, Trigger>.Transition(State.A, State.B, Trigger.X));
 
         Assert.Equal(2, actual.Count);
         Assert.Equal(0, actual[0]);
@@ -201,7 +202,7 @@ public class StateRepresentationFixture
     }
 
     [Fact]
-    public void ExitActionsExecuteInOrder()
+    public async Task ExitActionsExecuteInOrder()
     {
         var actual = new List<int>();
 
@@ -209,7 +210,7 @@ public class StateRepresentationFixture
         rep.AddExitAction(_ => actual.Add(0), InvocationInfo.Create(null, "entryActionDescription"));
         rep.AddExitAction(_ => actual.Add(1), InvocationInfo.Create(null, "entryActionDescription"));
 
-        rep.Exit(new StateMachine<State, Trigger>.Transition(State.B, State.C, Trigger.X));
+        await rep.ExitAsync(new StateMachine<State, Trigger>.Transition(State.B, State.C, Trigger.X));
 
         Assert.Equal(2, actual.Count);
         Assert.Equal(0, actual[0]);
@@ -243,7 +244,7 @@ public class StateRepresentationFixture
     }
 
     [Fact]
-    public void WhenEnteringSubstate_SuperstateEntryActionsExecuteBeforeSubstate()
+    public async Task WhenEnteringSubstate_SuperstateEntryActionsExecuteBeforeSubstate()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
@@ -251,12 +252,12 @@ public class StateRepresentationFixture
         super.AddEntryAction((_, _) => superOrder = order++, InvocationInfo.Create(null, "entryActionDescription"));
         sub.AddEntryAction((_, _) => subOrder = order++, InvocationInfo.Create(null, "entryActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(State.C, sub.UnderlyingState, Trigger.X);
-        sub.Enter(transition);
+        await sub.EnterAsync(transition);
         Assert.True(superOrder < subOrder);
     }
 
     [Fact]
-    public void WhenExitingSubstate_SubstateEntryActionsExecuteBeforeSuperstate()
+    public async Task WhenExitingSubstate_SubstateEntryActionsExecuteBeforeSuperstate()
     {
         CreateSuperSubstatePair(out var super, out var sub);
 
@@ -264,7 +265,7 @@ public class StateRepresentationFixture
         super.AddExitAction(_ => superOrder = order++, InvocationInfo.Create(null, "entryActionDescription"));
         sub.AddExitAction(_ => subOrder = order++, InvocationInfo.Create(null, "entryActionDescription"));
         var transition = new StateMachine<State, Trigger>.Transition(sub.UnderlyingState, State.C, Trigger.X);
-        sub.Exit(transition);
+        await sub.ExitAsync(transition);
         Assert.True(subOrder < superOrder);
     }
 
@@ -360,7 +361,7 @@ public class StateRepresentationFixture
 
     // Issue #398 - Set guard description if substate transition fails
     [Fact]
-    public void SetGuardDescriptionWhenSubstateGuardFails()
+    public async Task SetGuardDescriptionWhenSubstateGuardFails()
     {
         const string expectedGuardDescription = "Guard failed";
         ICollection<string> guardDescriptions = null;
@@ -370,7 +371,7 @@ public class StateRepresentationFixture
 
         fsm.Configure(State.B).SubstateOf(State.A).PermitIf(Trigger.X, State.C, () => false, expectedGuardDescription);
 
-        fsm.Fire(Trigger.X);
+        await fsm.FireAsync(Trigger.X);
 
         Assert.Equal(fsm.State, State.B);
         Assert.True(guardDescriptions is { });
@@ -380,7 +381,7 @@ public class StateRepresentationFixture
 
     // Issue #422 - Add all guard descriptions to result if multiple guards fail for same trigger
     [Fact]
-    public void AddAllGuardDescriptionsWhenMultipleGuardsFailForSameTrigger()
+    public async Task AddAllGuardDescriptionsWhenMultipleGuardsFailForSameTrigger()
     {
         ICollection<string> expectedGuardDescriptions = new List<string> { "PermitReentryIf guard failed", "PermitIf guard failed" };
         ICollection<string> guardDescriptions = null;
@@ -392,7 +393,7 @@ public class StateRepresentationFixture
            .PermitReentryIf(Trigger.X, () => false, "PermitReentryIf guard failed")
            .PermitIf(Trigger.X, State.C, () => false, "PermitIf guard failed");
 
-        fsm.Fire(Trigger.X);
+        await fsm.FireAsync(Trigger.X);
 
         Assert.Equal(fsm.State, State.A);
         Assert.True(guardDescriptions is { });
