@@ -1,11 +1,8 @@
-﻿using System.Threading.Tasks;
-namespace Stateless.Tests; 
+﻿namespace Stateless.Tests;
 
-public class ActiveStatesFixture
-{
+public class ActiveStatesFixture {
     [Fact]
-    public async Task WhenActivate()
-    {
+    public async Task WhenActivate() {
         var sm = new StateMachine<State, Trigger>(State.A);
 
         var expectedOrdering = new List<string> { "ActivatedC", "ActivatedA" };
@@ -30,8 +27,7 @@ public class ActiveStatesFixture
     }
 
     [Fact]
-    public async Task WhenActivateIsIdempotent()
-    {
+    public async Task WhenActivateIsIdempotent() {
         var sm = new StateMachine<State, Trigger>(State.A);
 
         var actualOrdering = new List<string>();
@@ -49,8 +45,7 @@ public class ActiveStatesFixture
     }
 
     [Fact]
-    public async Task WhenDeactivate()
-    {
+    public async Task WhenDeactivate() {
         var sm = new StateMachine<State, Trigger>(State.A);
 
         var expectedOrdering = new List<string> { "DeactivatedA", "DeactivatedC" };
@@ -76,8 +71,7 @@ public class ActiveStatesFixture
     }
 
     [Fact]
-    public async Task WhenDeactivateIsIdempotent()
-    {
+    public async Task WhenDeactivateIsIdempotent() {
         var sm = new StateMachine<State, Trigger>(State.A);
 
         var actualOrdering = new List<string>();
@@ -99,23 +93,19 @@ public class ActiveStatesFixture
     }
 
     [Fact]
-    public async Task WhenTransitioning()
-    {
+    public async Task WhenTransitioning() {
         var sm = new StateMachine<State, Trigger>(State.A);
 
-        var expectedOrdering = new List<string>
-        {
+        var expectedOrdering = new List<string> {
             "ActivatedA",
             "ExitedA",
             "OnTransitioned",
             "EnteredB",
             "OnTransitionCompleted",
-
             "ExitedB",
             "OnTransitioned",
             "EnteredA",
-            "OnTransitionCompleted",
-
+            "OnTransitionCompleted"
         };
 
         var actualOrdering = new List<string>();
@@ -147,15 +137,10 @@ public class ActiveStatesFixture
     }
 
     [Fact]
-    public async Task WhenTransitioningWithinSameSuperstate()
-    {
+    public async Task WhenTransitioningWithinSameSuperstate() {
         var sm = new StateMachine<State, Trigger>(State.A);
 
-        var expectedOrdering = new List<string>
-        {
-            "ActivatedC",
-            "ActivatedA",
-        };
+        var expectedOrdering = new List<string> { "ActivatedC", "ActivatedA" };
 
         var actualOrdering = new List<string>();
 
